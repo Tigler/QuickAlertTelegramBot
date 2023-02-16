@@ -1,0 +1,10 @@
+ext {
+    snapshot = true
+    remoteHost = "<REMOTE_HOST>"
+    remotePort = 22
+    remoteUser = "<REMOTE_USER>"
+    remotePassword = "<REMOTE_PASSWORD>"
+
+    serviceProfile = "release"
+}
+
