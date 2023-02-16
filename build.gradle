@@ -1,0 +1,88 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.0.0'
+    id 'io.spring.dependency-management' version '1.1.0'
+    id 'org.hidetake.ssh' version '2.9.0'
+}
+
+group = 'com.quickalert.telegram'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+apply from: "build-${profile}.gradle"
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    implementation "org.hibernate:hibernate-validator:6.1.6.Final"
+    implementation "org.hibernate:hibernate-core:6.1.6.Final"
+
+
+    runtimeOnly 'org.postgresql:postgresql'
+
+    implementation 'org.telegram:telegrambots:5.0.1'
+    implementation 'org.telegram:telegrambotsextensions:5.0.1'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+bootJar {
+    destinationDirectory = new File("${rootDir}/out/build/${project.name}/${profile}/${version}")
+    archiveFileName = "quickalert-telegram-bot.jar"
+    mainClass = 'com.quickalert.telegram.Application'
+    manifest {
+        attributes(
+                'Implementation-Version': archiveVersion,
+                'Implementation-Vendor': 'tigler'
+        )
+    }
+    exclude('application*.yml')
+}
+
+
+remotes {
+    web01 {
+        host = "${remoteHost}"
+        user = "${remoteUser}"
+        password = "${remotePassword}"
+        port = "${remotePort}" as int
+        knownHosts = allowAnyHosts
+    }
+}
+
+tasks.register('deploy') {
+    doLast {
+        ssh.run {
+            session(remotes.web01) {
+                put from: bootJar.destinationDir.toString() + "/" + bootJar.archiveName, into: "./${bootJar.archiveName}"
+                put from: "${project.projectDir}/src/main/resources/application-${profile}.yml", into: "./application.yml"
+                executeSudo "service quickalert-telegram-bot-${serviceProfile} stop", pty: true
+                executeSudo "cp ./${bootJar.archiveName} /srv/quickalert-telegram-bot/${serviceProfile}/", pty: true
+                execute "rm -rf ./${bootJar.archiveName}"
+                executeSudo "cp ./application.yml /srv/quickalert-telegram-bot/${serviceProfile}/", pty: true
+                execute "rm -rf ./application.yml"
+                executeSudo "service quickalert-telegram-bot-${serviceProfile} start", pty: true
+            }
+        }
+    }
+}
+deploy.dependsOn build
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

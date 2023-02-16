@@ -1,0 +1,10 @@
+spring:
+  profiles:
+    active: develop
+
+server:
+  port : 8081
+
+bot:
+  name: <BOT_NAME>
+  token: <BOT_TOKEN>

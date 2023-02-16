@@ -1,0 +1,21 @@
+spring:
+  profiles:
+    active: release
+  mvc:
+    pathmatch:
+      matching-strategy: ant-path-matcher
+  jpa:
+    defer-datasource-initialization: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    url: jdbc:postgresql://<DB_HOST>:<DB_PORT>/quickalert_release
+    username: <DB_USERNAME>
+    password: <DB_PASSWORD>
+
+
+server:
+  port : 8081
+
+bot:
+  name: <BOT_NAME>
+  token: <BOT_TOKEN>

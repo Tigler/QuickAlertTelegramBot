@@ -1,0 +1,11 @@
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant-path-matcher
+  jpa:
+    defer-datasource-initialization: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    url: jdbc:postgresql://<DB_HOST>:<DB_PORT>/quickalert_develop
+    username: <DB_USERNAME>
+    password: <DB_PASSWORD>
